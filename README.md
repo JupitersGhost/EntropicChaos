@@ -312,8 +312,8 @@ The firmware stores configuration in **flash memory** at `cipher_enhanced_cfg.js
 
 -----
 
-\<div align="center"\>
-\<img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
+<div align="center"\>
+<img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
 
 **Entropic Chaos / Cobra Lab**
 
@@ -322,8 +322,3 @@ The firmware stores configuration in **flash memory** at `cipher_enhanced_cfg.js
 Built with 🔐 by RW from Cobra Tech/CHIRASU
 
 Powered by ESP32-S3 · Fedora Linux · Rust · Python · Discord
-
-\</div\>
-
-```
-```
