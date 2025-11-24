@@ -14,181 +14,186 @@
 
 > **⚠️ WARNING:** *THIS IS A PROOF OF CONCEPT SYSTEM. DO NOT USE TO SECURE CRITICAL NETWORKS WITHOUT INDEPENDENT AUDITING.*
 
-The network features personality-driven interaction through three character nodes:
-- **Cipher-tan** (ESP32-S3): Entropy harvester with TRNG, WiFi noise, and USB jitter collection.
-- **Echo-tan** (ESP32-S3): Runs same firmware as Cipher-tan, but validates entropy before sending.
-- **Ayatoki** (Dell OptiPlex/Fedora): Orchestrator node coordinating the distributed system, running full NIST suite, mixing, and pre/post audits.
+The distributed network features **three cryptographic character-nodes**, each representing actual hardware roles:
 
-**Current Status:** Phase 2 Complete - Dual Audit System (Ayatoki + Echo) operational with PQC Hybrid Wrapping + 3 device entropy.
+- **Cipher-tan** (ESP32-S3): Primary entropy harvester (TRNG, WiFi noise, jitter).
+- **Echo-tan** (ESP32-S3): Dedicated entropy **auditor** performing independent statistical validation.
+- **Ayatoki** (Fedora Orchestrator): Host-side coordinator running full NIST-style test suite, mixing, and PQC pre/post wrap verification.
+
+**Current Status:**  
+**Phase 2: Dual Audit System COMPLETE** — Ayatoki + Echo perform independent NIST-style validation; PQC hybrid wrapping now includes integrity checks across **three devices**.
+
+---
 
 ## Features
 
 ### Core Architecture
-- **Audit-Before-Wrap Principle**: Entropy validated by dedicated hardware (Echo-tan) before PQC wrapping.
-- **Distributed Harvesting**: Multi-node entropy generation across CHIRASU network.
-- **Immutable Audit Trails**: Hardware heartbeat verification and persistent logging.
-- **PQC Hybrid**: Kyber512 (KEM) + Falcon512 (Signing) protecting classical keys.
 
-### Phase 2: Cobra Lab Dual Audit (✅ COMPLETE)
-- **Ayatoki Orchestrator**: Modular Python architecture (PySide6).
-- **Dual Audit System**: 
-    1. **Pre-Wrap**: Ayatoki validates raw entropy using NIST SP 800-90B statistical tests (Frequency, Runs, Chi-Square).
-    2. **Post-Wrap**: Ayatoki cryptographically verifies the Falcon512 signature to guarantee the provenance and integrity of the Kyber512-wrapped key.
-- **Cipher-tan ESP32-S3**: Primary entropy harvester (TRNG + Jitter).
-- **Echo-tan ESP32-S3**: Dedicated auditor node streaming verified entropy for the mix.
-- **Tri-Node Chat**: Real-time GUI interaction between Cipher, Echo, and Ayatoki.
+- **Audit-Before-Wrap Principle**  
+  All entropy must pass statistical health checks (Ayatoki + Echo) **before** PQC operations.
 
-### Entropy Sources
-- **Keystroke Timing**: Sub-microsecond timing precision from keyboard events.
-- **Mouse Movement**: Micro-movements contribute to entropy pool.
-- **ESP32 TRNG**: Hardware true random number generator (Cipher + Echo).
-- **USB Jitter**: Inter-arrival timing entropy from USB communications.
-- **Host RNG**: OS-level /dev/urandom integration.
+- **Multi-node entropy harvesting**  
+  ESP32 TRNGs + host jitter + mouse + keystrokes + USB timing variability.
 
-### GUI Features (Ayatoki Node)
-- **Modern Interface**: PySide6-based with Cobra Lab aesthetic (black/red/purple theme).
-- **Multi-Character Status**: Distinct panels for Cipher, Echo, and Ayatoki.
-- **Audit Dashboard**: Live NIST SP 800-90B compliance monitoring.
-- **PQC Indicators**: Visual confirmation of Kyber/Falcon application.
-- **Configurable Settings**: Brightness, timing windows, PQC algorithms.
-- **Key Logging**: JSON-based storage with comprehensive metadata.
+- **Dual-hardware audit pipeline (Phase 2)**  
+  Echo-tan’s independent validation prevents host-side bias or spoofed entropy.
+
+- **PQC Hybrid Security**  
+  - **Kyber512** (Key Encapsulation)  
+  - **Falcon512** (Post-quantum digital signatures)  
+  Used to wrap and sign entropy-derived keys.
+
+- **Immutable audit trails**  
+  Each key is logged with provenance, health scores, entropy byte counts, and signatures.
+
+---
+
+## Phase 2: Cobra Lab Dual Audit (COMPLETE)
+
+The new Phase 2 system introduces a **Dual Hardware Auditor Model**:
+
+### 1. **Pre-Wrap Audit (Ayatoki Host)**  
+Ayatoki runs NIST SP 800-90B-inspired tests:
+
+- Frequency  
+- Runs  
+- Chi-Square  
+- Longest-run  
+- Shannon entropy estimation  
+
+Keys **cannot** be wrapped until these pass.
+
+### 2. **Post-Wrap Audit (Echo-tan)**  
+Echo-tan independently:
+
+- Re-evaluates entropy  
+- Confirms byte distribution quality  
+- Verifies post-wrap Falcon512 signature integrity  
+- Acts as a hardware check-and-balance against Ayatoki  
+
+### 3. **Cipher-tan**  
+Primary entropy source feeding TRNG bytes + jitter into the mix.
+
+**Result:**  
+Keys are only finalized when **all three nodes agree on entropy quality**, ensuring credible provenance.
+
+---
+
+## Entropy Sources
+
+- **Keyboard Timing**: Microsecond granularity.  
+- **Mouse Movement**: Micro-jitter entropy.  
+- **ESP32 TRNG (Cipher + Echo)**: Hardware-level randomness.  
+- **USB Timing Jitter**: Host-device communication noise.  
+- **Host RNG**: Linux `/dev/urandom` integration.
+
+---
+
+## GUI Features (Ayatoki Node)
+
+- **Modern PySide6 interface** (Cobra Lab aesthetic).
+- **Three-node status panels**: Cipher · Echo · Ayatoki.
+- **Live entropy graph & audit dashboard**.
+- **PQC indicators**: Kyber512/Falcon512 readiness.
+- **Configurable runtime parameters**:
+  - sample windows  
+  - brightness  
+  - PQC enable/disable  
+  - logging paths  
+- **JSON-based key logs with full metadata**.
+
+---
 
 ## Development Phases
 
-### Phase 1: Cobra Lab MVP ✅ **COMPLETE**
-**Goal:** Ayatoki + Cipher-tan → Entropic Chaos GUI with PQC support
-**Achievements:**
-- Ayatoki orchestrator running Fedora with full GUI.
-- Cipher-tan ESP32-S3 responding with enhanced v2.1 firmware.
-- PQC bindings (Kyber512 + Falcon512) built and functional.
+### Phase 1: Cobra Lab MVP – **COMPLETE**
 
-### Phase 2: Echo Dual Auditor ✅ **COMPLETE**
-**Goal:** Echo as dedicated NIST auditor + secondary entropy harvester
-**Achievements:**
-- **Echo-tan Integrated**: Validates entropy quality independent of Host.
-- **Dual Audit Logic**: Pre-wrap (Host) and Post-wrap (Echo) verification.
-- **Verified Streaming**: Echo streams only health-checked TRNG bytes.
-- **Hybrid PQC**: Keys are wrapped (Kyber) and Signed (Falcon).
-- **GUI Upgrade**: Three-character interaction panel implemented.
+Goal: Establish Ayatoki + Cipher-tan with GUI + PQC support.
 
-### Phase 3: Mitsu Network Harvester 🚧 **NEXT UP**
-**Goal:** Add Mitsu laptop as remote entropy contributor
-**Planned Features:**
-- Small Python daemon on Mitsu-chan (systemd service).
-- Entropy frames sent over Tailscale network.
-- **Guardrails**: Only accept frames when Mitsu idle.
-- Sensor inputs: CPU temp, load jitter, I/O timing.
+Achievements:
+- Host orchestrator ready  
+- Cipher-tan TRNG streaming  
+- PQC bindings functional  
+- Baseline audit + key generation flow  
 
-### Phase 4: Dynamic Class System 📋 **PLANNED**
-**Goal:** Nodes dynamically shift roles based on system state
-**Class Definitions:** `harvester`, `auditor`, `validator`, `wrapper`
+### Phase 2: Echo Dual Auditor – **COMPLETE**
 
-### Phase 5: Blockchain Ledger Integration 📋 **PLANNED**
-**Goal:** Anchor all key events in Gorō + Kasumi's blockchain
+Goal: Introduce Echo-tan as independent hardware auditor.
 
-**Event Structure:**
-```json
-{
-  "event_type": "entropy_key_issued",
-  "key_id": "kyber512_wrapped_abc123...",
-  "entropy_sources": ["cipher", "echo", "mitsu"],
-  "prewrap_audit": {"score": 78.2, "entropy_bpb": 7.1},
-  "postwrap_audit": {"score": 80.5, "entropy_bpb": 7.0},
-  "pqc": {"kem": "Kyber512", "sig": "Falcon512"},
-  "role_assignments": {...},
-  "falcon_signature": "..."
-}
-````
+Achievements:
+- Echo integrated  
+- Verified streaming  
+- Pre-wrap + post-wrap audits  
+- Falcon signature verification  
+- Full tri-node visualization in GUI  
 
-**Workflow:**
+### Phase 3: Mitsu Network Harvester – **NEXT**
 
-1.  Ayatoki generates key with full audit trail.
-2.  Echo signs off on post-wrap verification.
-3.  Event serialized and signed with Falcon512.
-4.  Sent to Gorō/Kasumi blockchain RPC endpoint.
-5.  Query key provenance via `/get_event key_id`.
+Will add:
+- Remote entropy frames via Tailscale  
+- CPU jitter, thermal noise  
+- Idle-state guardrails  
+
+### Phase 4: Dynamic Class System – **PLANNED**
+
+Nodes may dynamically assume:
+`harvester`, `auditor`, `validator`, `wrapper`
+
+### Phase 5: Blockchain Ledger Integration – **PLANNED**
+
+All key events anchored in Gorō/Kasumi blockchain with Falcon signatures.
+
+---
 
 ## Setup & Installation
 
-### Hardware Setup
+### Hardware (Cipher-tan & Echo-tan)
 
-**Cipher-tan/Echo-tan ESP32-S3 Boards:**
+- ESP32-S3 board  
+- WS2812 LED (GPIO48 primary)  
+- USB CDC @ 115200 baud  
+- 5V USB power  
 
-1.  **Board Selection**: Any ESP32-S3 with accessible GPIO pins (tested: ESP32-S3-DevKitC-1).
-2.  **LED Configuration**:
-      - **Primary**: WS2812 addressable LED on GPIO48 (auto-detected).
-      - **Fallback**: Tries GPIO 8, 38, 48, 47, 21, 2 if primary fails.
-      - **Manual RGB**: GPIO47 (R), GPIO21 (G), GPIO14 (B) if WS2812 unavailable.
-3.  **USB Connection**: Serial communication at 115200 baud (USB CDC).
-4.  **Power**: 5V via USB (powers board + LED).
+Fallback LED pins are auto-detected where possible.
 
-**Ayatoki Orchestrator:**
+### Ayatoki Host
 
-  - Dell OptiPlex or similar x86\_64 system.
-  - Fedora Linux (or Ubuntu/Debian).
-  - Available USB port for Cipher-tan connection.
-  - Optional: udev rule for persistent `/dev/ttyCIPHER` symlink.
+- Fedora x86_64 (or Ubuntu/Debian)  
+- Python 3.8+  
+- Rust installed  
 
-### Software Installation (Ayatoki Orchestrator)
+### Software Installation
 
-1.  **Clone the repository**:
+```bash
+git clone https://github.com/JupitersGhost/CipherChaos.git
+cd CipherChaos
 
-    ```bash
-    cd ~  # Or your preferred location
-    git clone [https://github.com/JupitersGhost/CipherChaos.git](https://github.com/JupitersGhost/CipherChaos.git)
-    cd CipherChaos
-    ```
+python3 -m venv venv
+source venv/bin/activate
 
-2.  **Create and activate virtual environment** (strongly recommended):
+pip install -r requirements.txt
+````
 
-    ```bash
-    # Create virtual environment
-    python3 -m venv venv
+Build PQC bindings:
 
-    # Activate virtual environment
-    source venv/bin/activate
-    ```
+```bash
+pip install maturin==1.6.0
+maturin develop --release
+```
 
-3.  **Install Python dependencies**:
+Flash ESP32 firmware using Thonny or esptool.
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+Run GUI:
 
-4.  **Build PQC bindings** (required for Kyber512/Falcon512):
+```bash
+python main.py
+```
 
-    ```bash
-    # Ensure Rust toolchain is installed first
-    # If not: curl --proto '=https' --tlsv1.2 -sSf [https://sh.rustup.rs](https://sh.rustup.rs) | sh
+---
 
-    # Install maturin (Rust-to-Python build tool)
-    pip install maturin==1.6.0
+## ESP32 Firmware (Cipher-tan v2.1)
 
-    # Build and install the PQC bindings
-    maturin develop --release
-    ```
-
-5.  **Flash Cipher-tan & Echo-tan Firmware**:
-
-      - Use Thonny IDE or `esptool`.
-      - Upload `cipher-firmware/main.py` to Cipher-tan.
-      - Upload `echo-firmware/main.py` to Echo-tan.
-
-6.  **Run Entropic Chaos GUI**:
-
-    ```bash
-    # Make sure virtual environment is activated
-    source venv/bin/activate
-
-    # Launch the GUI
-    python main.py
-    ```
-
-## ESP32-S3 Firmware (Cipher-tan v2.1 Enhanced)
-
-### Status Response Format
-
-The `STAT?` command returns JSON with:
+`STAT?` response:
 
 ```json
 {
@@ -200,52 +205,48 @@ The `STAT?` command returns JSON with:
 }
 ```
 
-### Cipher-tan Personality
+**Personality quips** are preserved internally for debugging but do not affect functionality.
 
-The firmware features Cipher-tan's personality quips based on configured `personality_level`:
-
-  - **Startup**: "\*\*\* cipher-tan online\! Ready to wreak cryptographic havoc\!"
-  - **Key Forging**: "[\*] Key forged in the fires of chaos\!"
-  - **Errors**: "\\m/ Error handled like a boss\! cipher-tan recovers\!"
+---
 
 ## File Structure
 
 ```
 Entropic Chaos / Cobra Lab/
-├── main.py                 # Main GUI application entry point
-├── function.py             # Logic, Workers (Cipher/Echo), PQC Manager
-├── gui.py                  # UI Layout, Styles, Widgets
-├── cipher-bot.py           # Discord bot for Cipher-tan monitoring
-├── requirements.txt        # Python dependencies
-├── icon.png                # Main Cobra Lab logo
-├── README.md               # This file
+├── main.py                 # GUI entry point (Ayatoki)
+├── function.py             # Workers (Cipher/Echo), PQC manager
+├── gui.py                  # UI layout + logic
+├── requirements.txt
+├── icon.png
+├── README.md
 │
 ├── cipher-firmware/
-│   └── main.py             # ESP32-S3 firmware for Cipher-tan (Harvester)
+│   └── main.py             # Cipher-tan firmware
 │
 └── echo-firmware/
-    └── main.py             # ESP32-S3 firmware for Echo-tan (Auditor)
+    └── main.py             # Echo-tan firmware
 │
-├── Cargo.toml              # Rust PQC bindings configuration
-├── src/
-│   └── lib.rs              # Rust PQC bindings implementation
-│
-└── target/                 # Rust build artifacts (auto-generated)
-    └── release/
-        └── libpqcrypto_bindings.so  # Compiled PQC bindings
+├── Cargo.toml
+├── src/lib.rs
+└── target/release/libpqcrypto_bindings.so
 ```
+
+*(Optional internal tools such as local Discord logging scripts exist separately but are not part of the core system.)*
+
+---
 
 ## Configuration
 
-### GUI Configuration (Ayatoki Orchestrator)
+### GUI Config
 
-  - **Entropy Collection**: Window Duration, Keystroke Capture, Mouse Entropy, Host RNG, ESP32 TRNG.
-  - **PQC Settings**: Enable PQC, Kyber512 KEM, Falcon512 Signatures, Auto-save Keys.
-  - **Logging**: Key Log Path, JSON Log Format.
+* Window duration
+* Keystroke capture
+* Mouse entropy
+* TRNG usage
+* PQC enable/disable
+* JSON logging path
 
-### ESP32 Configuration
-
-The firmware stores configuration in **flash memory** at `cipher_enhanced_cfg.json`:
+### ESP32 Config (flash-stored)
 
 ```json
 {
@@ -257,83 +258,56 @@ The firmware stores configuration in **flash memory** at `cipher_enhanced_cfg.js
 }
 ```
 
+---
+
 ## Post-Quantum Cryptography
 
-**Kyber512 KEM (Key Encapsulation Mechanism):**
+### Kyber512 (KEM)
 
-  - NIST FIPS 203 standardized (originally Kyber).
-  - Lattice-based cryptography resistant to quantum attacks.
-  - Hybrid approach: Classical AES256 key XORed with Kyber shared secret.
+* NIST FIPS 203-approved
+* Lattice-based
+* Resistant to quantum attacks
 
-**Falcon512 (Digital Signatures):**
+### Falcon512 (Signatures)
 
-  - NIST post-quantum signature finalist.
-  - Used for key authentication and audit trail signing.
+* NIST finalist
+* Used for key provenance + audit trail signatures
+
+Hybrid wrapping:
+AES256 key XORed with Kyber shared secret + Falcon512 signature bundling.
+
+---
 
 ## License & Attribution
 
-**License:** MIT License
+Licensed under MIT.
 
-**This project uses:**
+Core technologies:
 
-  - **PySide6**: Qt for Python (LGPL/Commercial dual license)
-  - **pqcrypto**: Post-quantum cryptography implementations (Public Domain / CC0)
-  - **MicroPython**: Python 3 implementation for microcontrollers (MIT)
-  - **PyO3**: Rust-Python bindings (Apache-2.0 / MIT dual license)
-  - **discord.py**: Discord API wrapper (MIT)
+* PySide6 (Qt for Python)
+* pqcrypto Kyber/Falcon (CC0/Public Domain)
+* MicroPython
+* Rust PyO3
 
-**Character & Art:**
+Character artwork and branding created specifically for this project.
 
-  - Cipher-tan, Echo-tan, and Cobra Lab branding are original creations by me.
-  - Icons created via Gemini + Grok with specific instructions on each character and their designs. All icons and characters were created before generation.
-  - Character artwork represents the chaotic and precise nature of cryptographic entropy.
+---
 
-**Acknowledgments:**
+## Contact
 
-  - NIST for standardization efforts in post-quantum cryptography.
-  - pqcrypto maintainers for production-quality implementations.
-  - ESP32 and MicroPython communities for hardware support.
-  - Discord developer community for bot frameworks.
+**GitHub:** [https://github.com/JupitersGhost/CipherChaos](https://github.com/JupitersGhost/CipherChaos)
+**Email:** [acousticminja@gmail.com](mailto:acousticminja@gmail.com)
 
-## Contact & Community
+**Philosophy:**
 
-**GitHub**: [https://github.com/JupitersGhost/CipherChaos](https://github.com/JupitersGhost/CipherChaos)
+> "Everyone, regardless of the scale of their network, deserves digital sovereignty."
 
-**Discord**: [https://discord.gg/dabcxHkFxG](https://discord.gg/dabcxHkFxG)
-*\#Where my homelab network lives plus integration with Entropic Chaos. Roadmap eventually will include many of these devices as sources of entropy.*
-
-**Email**: acousticminja@gmail.com
-
-**Documentation**: See `project_phases.txt` for detailed development roadmap.
-
-**Hardware**: ESP32-S3 development boards, commodity x86\_64 servers, standard networking gear.
-
-**Philosophy**: "Everyone, regardless of the scale and scope of their network, should be able to have digital sovereignty."
-
------
-<<<<<<< HEAD
-
-<div align="center"\>
-<img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
+<div align="center">
+  <img src="icon.png" alt="Entropic Chaos" width="120" height="120">
 
 **Entropic Chaos / Cobra Lab**
-
 *Distributed Post-Quantum Entropy Generation*
+Built with 🔐 by RW from Cobra Tech / CHIRASU
 
-Built with 🔐 by RW from Cobra Tech/CHIRASU
+</div>
 
-Powered by ESP32-S3 · Fedora Linux · Rust · Python · Discord
-
-=======
-
-<div align="center"\>
-<img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
-
-**Entropic Chaos / Cobra Lab**
-
-*Distributed Post-Quantum Entropy Generation*
-
-Built with 🔐 by RW from Cobra Tech/CHIRASU
-
-Powered by ESP32-S3 · Fedora Linux · Rust · Python · Discord
->>>>>>> 1f258a2f87b442526c30a5a0fcc80e918c492dbc
