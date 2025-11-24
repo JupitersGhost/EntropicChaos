@@ -1,5 +1,4 @@
 # Entropic Chaos
-# Entropic Chaos / Cobra Lab
 
 <div align="center">
   <img src="icon.png" alt="Entropic Chaos" width="200" height="200" style="border-radius: 50%;">
