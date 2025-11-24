@@ -311,6 +311,7 @@ The firmware stores configuration in **flash memory** at `cipher_enhanced_cfg.js
 **Philosophy**: "Everyone, regardless of the scale and scope of their network, should be able to have digital sovereignty."
 
 -----
+<<<<<<< HEAD
 
 <div align="center"\>
 <img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
@@ -323,3 +324,16 @@ Built with 🔐 by RW from Cobra Tech/CHIRASU
 
 Powered by ESP32-S3 · Fedora Linux · Rust · Python · Discord
 
+=======
+
+<div align="center"\>
+<img src="icon.png" alt="Entropic Chaos" width="120" height="120"\>
+
+**Entropic Chaos / Cobra Lab**
+
+*Distributed Post-Quantum Entropy Generation*
+
+Built with 🔐 by RW from Cobra Tech/CHIRASU
+
+Powered by ESP32-S3 · Fedora Linux · Rust · Python · Discord
+>>>>>>> 1f258a2f87b442526c30a5a0fcc80e918c492dbc
