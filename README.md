@@ -1,4 +1,5 @@
 # Entropic Chaos
+# Entropic Chaos / Cobra Lab
 
 <div align="center">
   <img src="icon.png" alt="Entropic Chaos" width="200" height="200" style="border-radius: 50%;">
@@ -10,14 +11,14 @@
 
 ---
 
-**Entropic Chaos** is a production-quality distributed entropy generation network across the CHIRASU (my homelab) mesh. This project showcases rigorous entropy validation through NIST SP 800-90B auditing *before* Post-Quantum Cryptography key wrapping, positioning it as a credible demonstration of next-generation cryptographic systems.
+**Entropic Chaos** is a production-quality distributed entropy generation network across the CHIRASU home network mesh. This project showcases rigorous entropy validation through NIST SP 800-90B auditing *before* Post-Quantum Cryptography key wrapping, positioning it as a credible demonstration of next-generation cryptographic systems. *THIS IS A PROOF OF CONCEPT SYSTEM, DO NOT USE TO SECURE YOUR NETWORK*
 
 The network features personality-driven interaction through three character nodes:
 - **Cipher-tan** (ESP32-S3): Entropy harvester with TRNG, WiFi noise, and USB jitter collection
-- **Echo-tan** (ESP32-S3): Dedicated NIST SP 800-90B audit validator 
-- **Ayatoki** (Dell OptiPlex/Fedora): Orchestrator node coordinating the distributed system
+- **Echo-tan** (ESP32-S3): Runs same firmware as Cipher-tan, but validates entropy before sending.
+- **Ayatoki** (Dell OptiPlex/Fedora): Orchestrator node coordinating the distributed system, running full NIST suite, mixing, and pre/post audits.
 
-**Current Status:** Phase 1 Complete - MVP operational with Cipher-tan, Ayatoki orchestrator, and PQC integration.
+**Current Status:** Phase 2 Complete - Dual Audit System (Ayatoki + Echo) operational with PQC Hybrid Wrapping + 3 device entropy.
 
 ## Features
 
@@ -25,116 +26,73 @@ The network features personality-driven interaction through three character node
 - **Audit-Before-Wrap Principle**: Entropy validated by dedicated hardware (Echo-tan) before PQC wrapping
 - **Distributed Harvesting**: Multi-node entropy generation across CHIRASU network
 - **Immutable Audit Trails**: Hardware heartbeat verification and persistent logging
-- **HKDF Key Derivation**: Proper context labeling prevents key reuse across distributed nodes
-- **Production-Quality**: Built to NIST credibility standards, not just proof-of-concept
+- **PQC Hybrid**: Kyber512 (KEM) + Falcon512 (Signing) protecting classical keys
 
-### Phase 1: Cobra Lab MVP (✅ COMPLETE)
-- **Ayatoki Orchestrator**: Dell OptiPlex running Fedora with PySide6 GUI
-- **Cipher-tan ESP32-S3**: Primary entropy harvester with TRNG, WiFi jitter, USB timing
-- **PQC Integration**: Kyber512 KEM and Falcon512 signatures with Rust bindings
-- **Discord Integration**: Cipher-bot presence monitoring and status reporting
-- **Real-time Visualization**: Live entropy quality assessment and key generation monitoring
+### Phase 2: Cobra Lab Dual Audit (✅ COMPLETE)
+- **Ayatoki Orchestrator**: Modular Python architecture (PySide6)
+- **Dual Audit System**: 
+    1. **Pre-Wrap**: Ayatoki validates raw entropy using NIST SP 800-90B statistical tests (Frequency, Runs, Chi-Square).
+    2. **Post-Wrap**: Ayatoki cryptographically verifies the Falcon512 signature to guarantee the provenance and integrity of the Kyber512-wrapped key.
+- **Cipher-tan ESP32-S3**: Primary entropy harvester (TRNG + Jitter)
+- **Echo-tan ESP32-S3**: Dedicated auditor node streaming verified entropy for the mix
+- **Tri-Node Chat**: Real-time GUI interaction between Cipher, Echo, and Ayatoki
 
 ### Entropy Sources
 - **Keystroke Timing**: Sub-microsecond timing precision from keyboard events
 - **Mouse Movement**: Micro-movements contribute to entropy pool
-- **ESP32 TRNG**: Hardware true random number generator
+- **ESP32 TRNG**: Hardware true random number generator (Cipher + Echo)
 - **USB Jitter**: Inter-arrival timing entropy from USB communications
-- **WiFi Entropy**: Environmental RF noise collection (Phase 2+)
 - **Host RNG**: OS-level /dev/urandom integration
 
 ### GUI Features (Ayatoki Node)
 - **Modern Interface**: PySide6-based with Cobra Lab aesthetic (black/red/purple theme)
-- **Multi-Source Display**: Real-time tracking of all entropy contributors
+- **Multi-Character Status**: Distinct panels for Cipher, Echo, and Ayatoki
 - **Audit Dashboard**: Live NIST SP 800-90B compliance monitoring
-- **Network Status**: Headscale/mesh connectivity visualization
-- **Tray Integration**: Background operation with system tray
+- **PQC Indicators**: Visual confirmation of Kyber/Falcon application
 - **Configurable Settings**: Brightness, timing windows, PQC algorithms
 - **Key Logging**: JSON-based storage with comprehensive metadata
-
-### ESP32-S3 Firmware (Cipher-tan v2.1 Enhanced)
-- **TRNG Streaming**: Configurable 1-50Hz true random number generation
-- **WiFi Entropy Buffer**: 256-byte environmental RF noise collection
-- **USB Jitter Buffer**: 256-byte timing entropy from USB communications  
-- **RGB Control**: Dynamic LED feedback with 16M+ colors via WS2812
-- **Personality System**: Cipher-tan's cryptographic commentary
-- **Status Monitoring**: Real-time hardware telemetry (JSON over serial)
-- **Persistent Config**: Flash-stored settings survive reboots
-- **Emergency Fallback**: Graceful degradation on hardware failures
 
 ## Development Phases
 
 ### Phase 1: Cobra Lab MVP ✅ **COMPLETE**
 **Goal:** Ayatoki + Cipher-tan → Entropic Chaos GUI with PQC support
-
 **Achievements:**
-- ✅ Ayatoki orchestrator running Fedora with full GUI
-- ✅ Cipher-tan ESP32-S3 responding with enhanced v2.1 firmware
-- ✅ TRNG streaming at configurable rates (1-50Hz)
-- ✅ PQC bindings (Kyber512 + Falcon512) built and functional
-- ✅ GUI rebranded to "Entropic Chaos / Cobra Lab"
-- ✅ Cipher-bot Discord presence monitoring
-- ✅ Real-time entropy visualization and audit scoring
+- Ayatoki orchestrator running Fedora with full GUI
+- Cipher-tan ESP32-S3 responding with enhanced v2.1 firmware
+- PQC bindings (Kyber512 + Falcon512) built and functional
 
-**Deliverables:**
-- Working GUI with Cipher entropy integration
-- PQC key wrapping operational
-- Discord bot online for status reporting
-- Key logging with comprehensive metadata
-
-### Phase 2: Echo Dual Auditor 🚧 **NEXT UP**
+### Phase 2: Echo Dual Auditor ✅ **COMPLETE**
 **Goal:** Echo as dedicated NIST auditor + secondary entropy harvester
+**Achievements:**
+- **Echo-tan Integrated**: Validates entropy quality independent of Host
+- **Dual Audit Logic**: Pre-wrap (Host) and Post-wrap (Echo) verification
+- **Verified Streaming**: Echo streams only health-checked TRNG bytes
+- **Hybrid PQC**: Keys are wrapped (Kyber) and Signed (Falcon)
+- **GUI Upgrade**: Three-character interaction panel implemented
 
-**Planned Features:**
-- Echo-tan ESP32-S3 firmware (derived from Cipher's)
-- **Pre-wrap audit**: Ayatoki validates entropy before PQC operations
-- **Post-wrap audit**: Echo independently verifies output integrity
-- Per-key JSON logging for audit trail persistence
-- Echo-bot Discord integration with audit verdicts
-- `/prewrap_audit` and `/postwrap_audit` Discord commands
-
-**Success Criteria:**
-- Every key has dual audit records (Ayatoki + Echo)
-- Echo's firmware mirrors Cipher's capabilities
-- Discord bots show coordinated status
-
-### Phase 3: Mitsu Network Harvester 📋 **PLANNED**
+### Phase 3: Mitsu Network Harvester 🚧 **NEXT UP**
 **Goal:** Add Mitsu laptop as remote entropy contributor
-
-**Architecture:**
+**Planned Features:**
 - Small Python daemon on Mitsu-chan (systemd service)
 - Entropy frames sent over Tailscale network
-- **Guardrails**: Only accept frames when Mitsu idle or running specific tasks
-- Sensor inputs: CPU temp, load jitter, I/O timing, network ping variance
-- Rate limiting to prevent "steady bit" contamination
-
-**Deliverables:**
-- Mitsu entropy frames merged into Ayatoki pool
-- Audit system flags suspicious steady-state contributions
-- System operates normally with Mitsu offline (graceful degradation)
+- **Guardrails**: Only accept frames when Mitsu idle
+- Sensor inputs: CPU temp, load jitter, I/O timing
 
 ### Phase 4: Dynamic Class System 📋 **PLANNED**
 **Goal:** Nodes dynamically shift roles based on system state
-
-**Class Definitions:**
-- `harvester` - Gather entropy (Cipher, Echo, Mitsu)
-- `auditor` - Run NIST compliance checks (Ayatoki, Echo, Mitsu)
-- `validator` - Final yes/no on key usability
-- `wrapper` - Perform PQC operations (Ayatoki, Mitsu)
-
-**Orchestration:**
-- Lab orchestrator script polls node state (idle time, load, battery)
-- Applies rules to assign classes dynamically
-- Example: "Mitsu idle >5min on AC → assign [harvester, auditor]"
-- Roles can overlap (e.g., Ayatoki = auditor + wrapper simultaneously)
-
-**Deliverables:**
-- Dashboard showing live role assignments
-- Entropy pipeline adapts to which nodes are busy vs. idle
-- Multi-class assignment per node
+**Class Definitions:** `harvester`, `auditor`, `validator`, `wrapper`
 
 ### Phase 5: Blockchain Ledger Integration 📋 **PLANNED**
 **Goal:** Anchor all key events in GorÅ + Kasumi's blockchain
+
+## Setup & Installation
+
+### Software Installation (Ayatoki Orchestrator)
+
+1. **Clone the repository**:
+   ```bash
+   git clone [https://github.com/JupitersGhost/CipherChaos.git](https://github.com/JupitersGhost/CipherChaos.git)
+   cd CipherChaos
 
 **Event Structure:**
 ```json
