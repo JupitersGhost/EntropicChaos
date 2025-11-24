@@ -280,16 +280,17 @@ AES256 key XORed with Kyber shared secret + Falcon512 signature bundling.
 
 ## License & Attribution
 
-Licensed under MIT.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
-Core technologies:
+**Core technologies:**
 
-* PySide6 (Qt for Python)
-* pqcrypto Kyber/Falcon (CC0/Public Domain)
-* MicroPython
-* Rust PyO3
+* **PySide6**: Qt for Python (LGPL/Commercial dual license)
+* **pqcrypto**: Kyber/Falcon implementations (CC0/Public Domain)
+* **MicroPython**: Python 3 for microcontrollers (MIT)
+* **Rust PyO3**: Rust bindings for Python (Apache-2.0/MIT)
 
-Character artwork and branding created specifically for this project.
+**Artwork:**
+Character artwork and branding were created specifically for this project.
 
 ---
 
