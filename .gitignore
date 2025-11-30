@@ -1,10 +1,31 @@
-venv/
-target/
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.idea/
-.vscode/
+*.log
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Backup folders
+Backups/
+
+# Rust build artifacts
+target/
+*.so
+
+# OS junk
 .DS_Store
-cobra_lab_live.py
+Thumbs.db
+
+# PySide6 cache
+*.qmlc
+*.jsc
+
+# ChaosMagnet scratch
+ChaosMagnet/__pycache__/
+ChaosMagnet/venv/
+ChaosMagnet/*.log

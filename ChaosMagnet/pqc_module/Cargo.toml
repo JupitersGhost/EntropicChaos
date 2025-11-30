@@ -1,0 +1,24 @@
+[package]
+name = "pqcrypto_bindings"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pqcrypto_bindings"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Using pqcrypto-kyber (the original Kyber, not ML-KEM yet)
+pqcrypto-kyber = "0.8.1"
+
+# Falcon signatures
+pqcrypto-falcon = "0.3.0"
+
+# Traits for as_bytes()/from_bytes()
+pqcrypto-traits = "0.3.5"
+
+# PyO3 for Python bindings - Upgraded for Python 3.13 support
+pyo3 = { version = "0.23.3", features = ["extension-module", "abi3-py310"] }
+
+[build-dependencies]
+# Not needed - maturin handles this

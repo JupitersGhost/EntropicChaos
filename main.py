@@ -1,14 +1,14 @@
 """
 Entropic Chaos - Main Entry Point
-Cobra Lab v0.5 - PHASE 2 (FULL RESTORATION)
+Cobra Lab v0.6 - PHASE 3 (MITSU INTEGRATION)
 Multi-device distributed entropy harvesting with PQC key wrapping.
-Phase 2: Ayatoki orchestrator + Cipher-tan + Echo-tan dual audit system.
+Phase 3: Ayatoki Orchestrator + Cipher (Hardware) + Echo (Audit) + Mitsu (Network/Forge).
 
 RESTORATION LOG:
-- Restored 1000+ lines of GUI styling and layout logic.
-- Restored Phase 1 "Always Rotating" RGB idle animation.
-- Implemented Phase 2 Dual Audit (Ayatoki Pre-wrap + Echo Post-wrap).
-- Implemented Non-blocking Serial I/O for high performance.
+- Fixed text encoding artifacts.
+- Implemented Phase 3: Mitsu-chan integration.
+- Added Pink theme (Accent 4) for Mitsu.
+- Replaced Network Manager with Mitsu's Network Forge.
 """
 
 import sys
@@ -32,8 +32,8 @@ def main():
         pass
     
     app = QApplication(sys.argv)
-    app.setApplicationName("Entropic Chaos · Cobra Lab Phase 2")
-    app.setApplicationVersion("0.5-phase2-full")
+    app.setApplicationName("Entropic Chaos · Cobra Lab Phase 3")
+    app.setApplicationVersion("0.6-phase3-mitsu")
 
     # Set application icon
     try:

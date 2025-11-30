@@ -1,0 +1,9 @@
+dearpygui
+psutil
+numpy
+pynput
+opencv-python
+sounddevice
+requests
+pyzmq
+

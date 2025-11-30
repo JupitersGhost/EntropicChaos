@@ -1,4 +1,3 @@
-
 """
 Entropic Chaos - Function Module
 All business logic, workers, managers, and helper functions
@@ -20,6 +19,7 @@ import math
 from datetime import datetime
 from collections import deque
 from pathlib import Path
+from http.server import BaseHTTPRequestHandler, HTTPServer # PHASE 3: Added for HTTP Ingest
 
 from PySide6.QtCore import Qt, QObject, QThread, Signal, Slot, QTimer, QSize, QPoint, QEvent
 from PySide6.QtGui import (QIcon, QAction, QPixmap, QColor, QTextCursor, QPainter, 
@@ -62,6 +62,7 @@ def _cc_char_icon_path(char_name: str = "cipher"):
       - cipher  -> ciphericon.png / .jpg
       - echo    -> echoicon.png / .jpg
       - ayatoki -> ayatokiicon.png / ayatoki-icon.png / .jpg
+      - mitsu   -> mitsuicon.png / .jpg (PHASE 3)
     """
     base = Path(__file__).parent
     candidates = []
@@ -72,6 +73,8 @@ def _cc_char_icon_path(char_name: str = "cipher"):
         candidates = ["echoicon.png", "echoicon.jpg"]
     elif char_name == "ayatoki":
         candidates = ["ayatokiicon.png", "ayatoki-icon.png", "ayatokiicon.jpg"]
+    elif char_name == "mitsu":
+        candidates = ["mitsuicon.png", "mitsuicon.jpg", "mitsu-icon.png"]
 
     for name in candidates:
         p = base / name
@@ -105,16 +108,19 @@ def _cc_get_pixmap(size: int = 60, char_name: str = "cipher"):
         pm.fill(QColor("#64c8ff"))  # Teal/cyan
     elif char_name == "ayatoki":
         pm.fill(QColor("#ff0844"))  # Red
+    elif char_name == "mitsu":
+        pm.fill(QColor("#ff69b4"))  # Hot pink
     return pm
 # --- end helpers ---
 
-# Global Cobra Lab theme: Black + Red + Purple + Teal
+# Global Cobra Lab theme: Black + Red + Purple + Teal + Pink (Phase 3)
 CIPHER_COLORS = {
     'bg': '#0a0a0a',        # Pure black background
     'panel': '#1a0a0a',     # Dark red-black panels
     'accent': '#ff0844',    # Hot red accent (Ayatoki)
     'accent2': '#b429f9',   # Purple accent (Cipher)
     'accent3': '#64c8ff',   # Teal/cyan accent (Echo)
+    'accent4': '#ff69b4',   # Hot pink accent (Mitsu) - PHASE 3
     'text': '#ffffff',      # Pure white text
     'muted': '#998899',     # Muted purple-gray
     'success': '#00ff88',   # Success green
@@ -612,7 +618,7 @@ class EchoWorker(QObject):
         # Echo personality - calm, poetic
         self.echo_quips = [
             "Every signal is a heartbeat. Every error, a sigh.",
-            "I hear Cipher's thunder… and answer with rain.",
+            "I hear Cipher's thunder... and answer with rain.",
             "Internal health verified. Streaming pure entropy.",
             "Noise is only fear, waiting to be understood.",
             "My circuits sing lullabies from chaos.",
@@ -818,7 +824,7 @@ class EchoWorker(QObject):
 
 # Cipher Worker (existing, enhanced for Phase 2)
 class CIPHERTANWorker(QObject):
-    """Enhanced worker with PQC support and Phase 2 dual audit"""
+    """Enhanced worker with PQC support, Phase 2 dual audit, and Phase 3 HTTP ingest"""
     
     status_update = Signal(str)
     quip_generated = Signal(str, str)  # (quip, character)
@@ -835,6 +841,9 @@ class CIPHERTANWorker(QObject):
     # Phase 2: Dual audit signals
     prewrap_audit_complete = Signal(dict)
     request_echo_audit = Signal(str, str)  # (key_id, audit_type)
+    
+    # Phase 3: Mitsu uplink signals
+    mitsu_entropy_received = Signal(int, dict)  # (bytes, metadata)
     
     def __init__(self):
         super().__init__()
@@ -868,6 +877,13 @@ class CIPHERTANWorker(QObject):
         self.keys_generated = 0
         self.hue_offset = 0.0
         
+        # PHASE 3: Remote Entropy Ingest (from Mitsu/ChaosMagnet)
+        self.remote_chunks = deque()
+        self.remote_lock = threading.Lock()
+        self.remote_bytes = 0
+        self.mitsu_last_seq = 0
+        self.mitsu_connected = False
+        
         self.entropy_lock = threading.Lock()
         self.stop_event = threading.Event()
         
@@ -893,42 +909,93 @@ class CIPHERTANWorker(QObject):
             "Signature verified. The theorem holds. Q.E.D.",
             "Cipher's chaos, Echo's verification, my orchestration.",
             "Mixed pool entropy: 7.98 bits/byte. Excellent.",
-            "Phase 2 operational. All nodes reporting nominal.",
+            "Phase 3 operational. All nodes reporting nominal.",
             "Dual audit checkpoint: Pre-wrap PASSED, Post-wrap VERIFIED.",
             "Perfect! Another proof that math can weaponize randomness.",
-            "The stable kernel to Cipher's wild overclock—that's us.",
+            "The stable kernel to Cipher's wild overclock - that's us.",
             "My lab, my rules: test everything, trust the numbers.",
-            "Blockchain ledger updated. Mooncake minted with PQC frosting."
+            "Blockchain ledger updated. Mooncake minted with PQC frosting.",
+            "Cross-node entropy synchronized. Distributed chaos achieved.",
+            "Mitsu uplink confirmed. External chaos merged into the pool."
         ]
         
         # Cipher personality
         self.cipher_quips = [
-            "Entropy buffet's open—who's hungry for bits?",
-            "Lattices spun tight, Senpai. Kyber's purring~ (¬‿¬ )",
+            "Entropy buffet's open - who's hungry for bits?",
+            "Lattices spun tight, Senpai. Kyber's purring~",
             "Falcon signed, sealed, delivered. Quantum clowns can sit down.",
             "I don't do predictable. I *murder* predictable.",
-            "Packets scrambled, mesh tangled—chaos relay primed!",
-            "Another key minted—smell that? That's post-quantum spice.",
+            "Packets scrambled, mesh tangled - chaos relay primed!",
+            "Another key minted - smell that? That's post-quantum spice.",
             "My TRNG hums like a rock concert, and every photon's backstage.",
-            "USB jitter swallowed whole—entropy's dessert course! (•̀ᴗ•́)و ̑̑",
+            "USB jitter swallowed whole - entropy's dessert course!",
             "Bitstream twisted beyond recognition. Predict me? Try me.",
             "Audit complete. Verdict: flawless chaos, 10/10 sparkle.",
-            "Quantum adversaries knock—Cipher slams the door shut.",
-            "Private key? More like private *tsunami*. (•̀°̃Ò°́)•̀ ̑̑ ┻━┻",
+            "Quantum adversaries knock - Cipher slams the door shut.",
+            "Private key? More like private *tsunami*.",
             "Entropy circus? I own the tent, the lions, the ring of fire.",
-            "Silicon dreams wired to chaos reality—next round's mine.",
+            "Silicon dreams wired to chaos reality - next round's mine.",
             "Every spike of entropy is a love letter Echo can verify~",
             "Noise harvested, entropy bottled, PQC corked tight. Cheers!",
-            "Kyber crystals aligned—let the lattice sing.",
-            "Falcon dives, signature lands—classical crypto's a fossil.",
-            "Audit log sealed, provenance preserved—Senpai, admire my craft.",
+            "Kyber crystals aligned - let the lattice sing.",
+            "Falcon dives, signature lands - classical crypto's a fossil.",
+            "Audit log sealed, provenance preserved - Senpai, admire my craft.",
             "Predictability filed under 'extinct.' CipherChaos: still undefeated."
+        ]
+        
+        # Phase 3: Mitsu personality (cozy tech gremlin)
+        self.mitsu_quips = [
+            "Uplink established! Entropy delivery inbound~",
+            "If it builds on my bench, it ships. Same goes for entropy!",
+            "ccache is love; entropy pooling is aftercare.",
+            "Harvester threads nominal. Streaming chaos your way!",
+            "Network handshake complete. Let's compile some keys!",
+            "Entropy packet dispatched. Receipt confirmed!",
+            "My sensors are humming. Quality looking good!",
+            "Cross-node sync achieved. Distributed builds are the best builds.",
+            "Chaos payload delivered. Time for a sticker!",
+            "Pool contribution logged. Ayatoki should be happy~",
+            "Audio + Video + System = Maximum entropy coverage!",
+            "Remote forge online. Mitsu reporting for duty!"
         ]
     
     def set_echo_worker(self, echo_worker):
         """Phase 2: Link Echo worker for verified entropy mixing"""
         self.echo_worker = echo_worker
     
+    def add_remote_entropy(self, payload: bytes, meta: dict | None = None):
+        """Phase 3: Ingest remote entropy from HTTP Server (Mitsu)"""
+        try:
+            with self.remote_lock:
+                self.remote_chunks.append(payload)
+                self.remote_bytes += len(payload)
+            
+            # Track Mitsu connection status
+            self.mitsu_connected = True
+            if meta:
+                self.mitsu_last_seq = meta.get("seq", self.mitsu_last_seq)
+            
+            # Show activity in graph
+            level = min(100.0, len(payload) / 1024.0 * 20.0) 
+            self.entropy_level_updated.emit(level)
+            
+            # Emit signal for GUI tracking
+            self.mitsu_entropy_received.emit(len(payload), meta or {})
+            
+            if meta:
+                src = meta.get("source", "REMOTE")
+                seq = meta.get("seq", "?")
+                # Only log every 10th packet to reduce spam
+                if isinstance(seq, int) and seq % 10 == 0:
+                    self.status_update.emit(f"Mitsu: Received {len(payload)}B from {src} (Seq: {seq})")
+            
+            # Occasional Mitsu quip
+            if random.random() < 0.05:
+                self.quip_generated.emit(random.choice(self.mitsu_quips), "mitsu")
+                
+        except Exception as e:
+            self.error_occurred.emit(f"Remote ingest error: {e}")
+
     def start_system(self):
         """Engage Chaos Mode - Start Generation"""
         if self.chaos_running:
@@ -950,7 +1017,7 @@ class CIPHERTANWorker(QObject):
         
         self.status_update.emit("CipherChaos chaos system online with PQC support!")
         if self.pqc_enabled and PQC_AVAILABLE:
-            self.quip_generated.emit("Kyber crystals aligned—let the lattice sing.", "cipher")
+            self.quip_generated.emit("Kyber crystals aligned - let the lattice sing.", "cipher")
         else:
             self.quip_generated.emit(random.choice(self.cipher_quips), "cipher")
     
@@ -1228,19 +1295,19 @@ class CIPHERTANWorker(QObject):
                 self.error_occurred.emit(f"Entropy processing error: {str(e)}")
     
     def process_entropy_window(self):
-        """Phase 2: Ayatoki Orchestrator - Mix → Pre-Audit → Wrap+Sign → Post-Verify"""
+        """Phase 2 & 3: Ayatoki Orchestrator - Mix (Cipher+Echo+Mitsu) -> Audit -> Wrap -> Verify"""
         
-        # === STEP 1: AGGREGATE (Three-Source Mixing) ===
+        # === STEP 1: AGGREGATE (Four-Source Mixing) ===
         mixed_pool = bytearray()
         
-        # Pull from Cipher (raw TRNG + jitter)
+        # A. Cipher (raw TRNG + jitter)
         with self.entropy_lock:
             if self.entropy_chunks:
                 cipher_data = b''.join(self.entropy_chunks)
                 mixed_pool.extend(cipher_data)
                 self.entropy_chunks.clear()
         
-        # Pull from Echo (VERIFIED entropy only)
+        # B. Echo (VERIFIED entropy only)
         if self.echo_worker:
             echo_data = self.echo_worker.get_verified_entropy()
             if echo_data:
@@ -1248,7 +1315,17 @@ class CIPHERTANWorker(QObject):
                 if random.random() < 0.1:
                     self.quip_generated.emit("Echo's verified stream mixed in. Quality assured.", "ayatoki")
         
-        # Add Ayatoki (Host) RNG - 64 bytes to ensure minimum length always met
+        # C. Mitsu/ChaosMagnet (Remote HTTP Uplink)
+        with self.remote_lock:
+            if self.remote_chunks:
+                remote_data = b"".join(self.remote_chunks)
+                mixed_pool.extend(remote_data)
+                self.remote_chunks.clear()
+                self.status_update.emit(f"Ayatoki: Mixed {len(remote_data)}B from Mitsu uplink.")
+                if random.random() < 0.15:
+                    self.quip_generated.emit("Cross-node entropy synchronized. Distributed chaos achieved.", "ayatoki")
+
+        # D. Ayatoki (Host) RNG - 64 bytes
         if self.include_host_rng:
             host_data = os.urandom(64)
             mixed_pool.extend(host_data)
@@ -1275,7 +1352,7 @@ class CIPHERTANWorker(QObject):
         pqc_ready = audit.get('pqc_ready', False)
         
         if not pqc_ready:
-            self.status_update.emit(f"Ayatoki: Mixed entropy quality insufficient (score: {audit.get('score', 0):.1f}). Need ≥65.0")
+            self.status_update.emit(f"Ayatoki: Mixed entropy quality insufficient (score: {audit.get('score', 0):.1f}). Need >= 65.0")
             return
         
         # === STEP 3: KEY GENERATION ===
@@ -1297,7 +1374,7 @@ class CIPHERTANWorker(QObject):
                 signature_valid = self.pqc_manager.verify_signature(pqc_bundle)
                 
                 if signature_valid:
-                    self.status_update.emit("✓ Ayatoki: Kyber+Falcon hybrid SUCCESS. Signature VERIFIED.")
+                    self.status_update.emit("Ayatoki: Kyber+Falcon hybrid SUCCESS. Signature VERIFIED.")
                     
                     if random.random() < 0.3:
                         self.quip_generated.emit("Signature verified. The theorem holds. Q.E.D.", "ayatoki")
@@ -1321,7 +1398,7 @@ class CIPHERTANWorker(QObject):
                         'type': 'kyber512_falcon512_hybrid',
                         'wrapping': pqc_bundle['type'],
                         'signature_verified': signature_valid,
-                        'sources': ['cipher', 'echo', 'ayatoki']
+                        'sources': ['cipher', 'echo', 'ayatoki', 'mitsu']
                     }
                     
                     # Save audit log
@@ -1444,3 +1521,61 @@ class CIPHERTANWorker(QObject):
                 
         except Exception as e:
             self.error_occurred.emit(f"Audit log save failed: {e}")
+
+
+# --- PHASE 3: HTTP Server for Ayatoki Ingest ---
+
+class AyatokiIngestHandler(BaseHTTPRequestHandler):
+    """Handles POST requests from Mitsu (ChaosMagnet)"""
+    worker: CIPHERTANWorker = None  # Class-level reference set at startup
+
+    def log_message(self, format, *args):
+        return # Suppress standard HTTP logging to console
+
+    def do_POST(self):
+        if self.path != "/ingest":
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length)
+            
+            packet = json.loads(body.decode("utf-8"))
+            payload_hex = packet.get("payload_hex")
+            
+            if not payload_hex:
+                raise ValueError("Missing payload_hex")
+
+            payload = bytes.fromhex(payload_hex)
+
+            if self.worker is not None:
+                self.worker.add_remote_entropy(payload, packet)
+
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+            
+        except Exception as e:
+            if self.worker is not None:
+                self.worker.error_occurred.emit(f"Ayatoki ingest error: {e}")
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"ERR")
+
+def start_ayatoki_ingest_server(worker: CIPHERTANWorker, host="0.0.0.0", port=8000):
+    """Starts the HTTP server in a daemon thread"""
+    def _run():
+        AyatokiIngestHandler.worker = worker
+        try:
+            server = HTTPServer((host, port), AyatokiIngestHandler)
+            worker.status_update.emit(
+                f"Ayatoki: HTTP ingest server listening on {host}:{port} (/ingest)"
+            )
+            server.serve_forever()
+        except Exception as e:
+            worker.error_occurred.emit(f"Ayatoki ingest server stopped: {e}")
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()

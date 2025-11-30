@@ -1,7 +1,7 @@
-
 """
 Entropic Chaos - GUI Module
 All GUI components, main window, panels, and styling
+Phase 3: Mitsu-chan Network Forge Integration
 """
 
 import os
@@ -26,11 +26,12 @@ from function import (
     CIPHER_COLORS, DEFAULT_DIR, KEYS_DIR, LOGS_DIR, AUDIT_DIR, DEFAULT_LOG,
     PQC_AVAILABLE, MLKEM_AVAILABLE,
     _cc_get_icon, _cc_get_pixmap,
-    EntropyVisualization, NetworkManager, EchoWorker, CIPHERTANWorker
+    EntropyVisualization, NetworkManager, EchoWorker, CIPHERTANWorker,
+    start_ayatoki_ingest_server # Phase 3 Import
 )
 
 class CIPHERTANMainWindow(QMainWindow):
-    """Main window with Phase 2 dual audit and three-character interface"""
+    """Main window with Phase 3 Mitsu integration and four-character interface"""
     
     def __init__(self):
         super().__init__()
@@ -66,6 +67,11 @@ class CIPHERTANMainWindow(QMainWindow):
         self.echo_audit_score = 0.0
         self.echo_connected = False
         
+        # Phase 3: Mitsu state
+        self.mitsu_connected = False
+        self.mitsu_bytes_received = 0
+        self.mitsu_last_seq = 0
+        
         # ESP32 state
         self.wifi_entropy_bytes = 0
         self.usb_entropy_bytes = 0
@@ -78,17 +84,17 @@ class CIPHERTANMainWindow(QMainWindow):
         self.ayatoki_quips = [
             "El Psy Kongroo! See? Chaos theory wins again.",
             "Perfect! Another proof that math can weaponize randomness.",
-            "Senpai, watch this—I'm about to make entropy my *thesis topic*.",
+            "Senpai, watch this - I'm about to make entropy my *thesis topic*.",
             "The math proof of emotion? Still searching. But this key? Solved.",
             "One explosion closer to enlightenment. Science demands sacrifice!",
             "Efficiency achieved through controlled chaos. Beautiful, isn't it?",
             "My entropy charm is glowing. Must be a good key.",
             "Kikku would be jealous of this innovation. *smirks*",
             "Blockchain ledger updated. Another mooncake minted!",
-            "The stable kernel to Cipher's wild overclock—that's us.",
+            "The stable kernel to Cipher's wild overclock - that's us.",
             "Sensor data nominal. Proceeding with experimental protocol.",
             "This is what happens when logic serves wonder, Senpai.",
-            "Phase 2 operational. Echo and Cipher, report status!",
+            "Phase 3 operational. All nodes reporting nominal!",
             "Dual audit complete. The theorem holds. Q.E.D.",
             "My lab, my rules: test everything, trust the numbers."
         ]
@@ -104,9 +110,6 @@ class CIPHERTANMainWindow(QMainWindow):
         self.resize(1200, 900)
     
     def eventFilter(self, obj, event):
-        # FIXED: Removed the strict 'chaos_running' check here. 
-        # We now pass all mouse events to the worker, and the worker's 
-        # add_mouse_entropy method decides whether to use them or drop them.
         if event.type() == QEvent.MouseMove and self.worker:
             try:
                 pos = getattr(event, "globalPosition", None)
@@ -120,7 +123,6 @@ class CIPHERTANMainWindow(QMainWindow):
                     else:
                         return False
                 
-                # Send to worker - Worker gate logic handles the "Start Chaos" requirement
                 if hasattr(self.worker, "add_mouse_entropy"):
                     self.worker.add_mouse_entropy(x, y)
             except Exception:
@@ -128,8 +130,8 @@ class CIPHERTANMainWindow(QMainWindow):
         return False
     
     def init_ui(self):
-        """Initialize UI with Phase 2 enhancements"""
-        self.setWindowTitle("Entropic Chaos · Cobra Lab Phase 2 (Ayatoki)")
+        """Initialize UI with Phase 3 enhancements"""
+        self.setWindowTitle("Entropic Chaos - Cobra Lab Phase 3 (Mitsu Integration)")
         self.setStyleSheet(self.get_stylesheet())
         
         central_widget = QWidget()
@@ -164,7 +166,7 @@ class CIPHERTANMainWindow(QMainWindow):
         right_column = QVBoxLayout()
         right_column.addWidget(self.create_status_panel())
         right_column.addWidget(self.create_dual_audit_panel())  # Phase 2
-        right_column.addWidget(self.create_network_panel())
+        right_column.addWidget(self.create_mitsu_network_panel())  # Phase 3: Mitsu replaces old network
         
         panels_layout.addLayout(left_column, 1)
         panels_layout.addLayout(right_column, 1)
@@ -174,8 +176,8 @@ class CIPHERTANMainWindow(QMainWindow):
         # Visualization
         scroll_layout.addWidget(self.create_visualization_panel())
         
-        # Phase 2: Three-character quip panel
-        scroll_layout.addWidget(self.create_triple_quip_panel())
+        # Phase 3: Four-character quip panel
+        scroll_layout.addWidget(self.create_quad_quip_panel())
         
         scroll_layout.addWidget(self.create_log_panel())
         
@@ -185,18 +187,19 @@ class CIPHERTANMainWindow(QMainWindow):
         # Status bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("Entropic Chaos · Cobra Lab Phase 2 System Ready")
+        self.status_bar.showMessage("Entropic Chaos - Cobra Lab Phase 3 System Ready")
     
     def create_header(self):
-        """Create header with Phase 2 branding"""
+        """Create header with Phase 3 branding"""
         header = QFrame()
         header.setFixedHeight(88)
         header.setStyleSheet(f"""
             QFrame {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
                     stop:0 {CIPHER_COLORS['accent']}, 
-                    stop:0.5 {CIPHER_COLORS['accent2']},
-                    stop:1 {CIPHER_COLORS['accent3']});
+                    stop:0.33 {CIPHER_COLORS['accent2']},
+                    stop:0.66 {CIPHER_COLORS['accent3']},
+                    stop:1 {CIPHER_COLORS['accent4']});
                 border-radius: 15px;
             }}
         """)
@@ -209,7 +212,7 @@ class CIPHERTANMainWindow(QMainWindow):
         if icon_path.exists():
             avatar.setPixmap(QPixmap(str(icon_path)).scaled(60, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
-            avatar.setText("🔬")
+            avatar.setText("CL")
         avatar.setStyleSheet("font-size: 36px; color: white; background: transparent;")
         avatar.setFixedSize(60, 60)
         avatar.setAlignment(Qt.AlignCenter)
@@ -219,10 +222,10 @@ class CIPHERTANMainWindow(QMainWindow):
         title_widget.setStyleSheet("background: transparent;")
         title_layout = QVBoxLayout(title_widget)
         
-        title = QLabel("Entropic Chaos · Cobra Lab Phase 2 · Node: Ayatoki")
+        title = QLabel("Entropic Chaos - Cobra Lab Phase 3 - Node: Ayatoki")
         title.setStyleSheet("font-size: 24px; font-weight: bold; color: white;")
         
-        subtitle = QLabel("Cipher · Echo · Ayatoki — Dual Audit PQC Showcase")
+        subtitle = QLabel("Cipher - Echo - Ayatoki - Mitsu | Quad-Source PQC Entropy Forge")
         subtitle.setStyleSheet("font-size: 12px; color: rgba(255,255,255,0.8);")
         
         title_layout.addWidget(title)
@@ -353,7 +356,7 @@ class CIPHERTANMainWindow(QMainWindow):
         return panel
     
     def create_control_panel(self):
-        """Enhanced control panel with Phase 2 features"""
+        """Enhanced control panel with Phase 3 features"""
         panel = QGroupBox("Chaos Control (Ayatoki)")
         panel.setStyleSheet(f"""
             QGroupBox {{
@@ -628,7 +631,7 @@ class CIPHERTANMainWindow(QMainWindow):
         ayatoki_layout.addWidget(self.ayatoki_pqc_ready_label)
         # Post-wrap summary (kept with pre-wrap tests for researcher clarity)
         self.ayatoki_last_wrap_label = QLabel("Last Key Wrap: Classical only (no PQC layer yet)")
-        self.ayatoki_wrap_algorithm_label = QLabel("Wrap Algorithm: —")
+        self.ayatoki_wrap_algorithm_label = QLabel("Wrap Algorithm: --")
         ayatoki_layout.addWidget(self.ayatoki_last_wrap_label)
         ayatoki_layout.addWidget(self.ayatoki_wrap_algorithm_label)
         
@@ -670,14 +673,87 @@ class CIPHERTANMainWindow(QMainWindow):
         
         return panel
     
-    def create_network_panel(self):
-        """Network panel with mesh status"""
-        panel = QGroupBox("CobraMesh Network")
+    def create_mitsu_network_panel(self):
+        """Phase 3: Mitsu-chan Network Forge panel (replaces old network panel)"""
+        panel = QGroupBox("Mitsu-chan Network Forge")
+        panel.setStyleSheet(f"""
+            QGroupBox {{
+                border: 3px solid {CIPHER_COLORS['accent4']};
+                border-radius: 12px;
+                margin: 24px 8px 12px 8px;
+                padding-top: 20px;
+                background-color: #1f0a1a;
+            }}
+            QGroupBox::title {{
+                color: {CIPHER_COLORS['accent4']};
+                font-weight: bold;
+                font-size: 11pt;
+            }}
+        """)
+        
         layout = QVBoxLayout(panel)
+        
+        # Mitsu avatar and status header
+        header_layout = QHBoxLayout()
+        
+        mitsu_avatar = QLabel()
+        mitsu_avatar.setPixmap(_cc_get_pixmap(48, "mitsu"))
+        mitsu_avatar.setFixedSize(48, 48)
+        header_layout.addWidget(mitsu_avatar)
+        
+        header_info = QVBoxLayout()
+        self.mitsu_connection_status = QLabel("OFFLINE - Waiting for uplink...")
+        self.mitsu_connection_status.setStyleSheet(f"color: {CIPHER_COLORS['warning']}; font-weight: bold;")
+        self.mitsu_endpoint_label = QLabel("Endpoint: http://0.0.0.0:8000/ingest")
+        self.mitsu_endpoint_label.setStyleSheet(f"color: {CIPHER_COLORS['muted']}; font-size: 9pt;")
+        header_info.addWidget(self.mitsu_connection_status)
+        header_info.addWidget(self.mitsu_endpoint_label)
+        header_layout.addLayout(header_info, 1)
+        
+        layout.addLayout(header_layout)
+        
+        # Separator
+        sep = QFrame()
+        sep.setFrameShape(QFrame.HLine)
+        sep.setStyleSheet(f"color: {CIPHER_COLORS['accent4']};")
+        layout.addWidget(sep)
+        
+        # Stats grid
+        stats_layout = QVBoxLayout()
+        
+        self.mitsu_bytes_label = QLabel("Bytes Received: 0")
+        self.mitsu_bytes_label.setStyleSheet(f"color: {CIPHER_COLORS['text']};")
+        
+        self.mitsu_seq_label = QLabel("Last Sequence: --")
+        self.mitsu_seq_label.setStyleSheet(f"color: {CIPHER_COLORS['text']};")
+        
+        self.mitsu_source_label = QLabel("Last Source: --")
+        self.mitsu_source_label.setStyleSheet(f"color: {CIPHER_COLORS['text']};")
+        
+        self.mitsu_quality_label = QLabel("Health: Awaiting data...")
+        self.mitsu_quality_label.setStyleSheet(f"color: {CIPHER_COLORS['muted']};")
+        
+        stats_layout.addWidget(self.mitsu_bytes_label)
+        stats_layout.addWidget(self.mitsu_seq_label)
+        stats_layout.addWidget(self.mitsu_source_label)
+        stats_layout.addWidget(self.mitsu_quality_label)
+        
+        layout.addLayout(stats_layout)
+        
+        # Separator
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.HLine)
+        sep2.setStyleSheet(f"color: {CIPHER_COLORS['muted']};")
+        layout.addWidget(sep2)
+        
+        # CobraMesh status (legacy)
+        mesh_label = QLabel("CobraMesh Status:")
+        mesh_label.setStyleSheet(f"font-weight: bold; color: {CIPHER_COLORS['muted']};")
+        layout.addWidget(mesh_label)
         
         self.headscale_status = QLabel("Headscale: Checking...")
         self.mesh_peers_label = QLabel("Mesh Peers: 0")
-        self.uplink_status = QLabel("Uplink: Disconnected")
+        self.uplink_status = QLabel("Tailscale: Disconnected")
         
         layout.addWidget(self.headscale_status)
         layout.addWidget(self.mesh_peers_label)
@@ -710,10 +786,13 @@ class CIPHERTANMainWindow(QMainWindow):
         
         return panel
     
-    def create_triple_quip_panel(self):
-        """Phase 2: Three-character quip display"""
+    def create_quad_quip_panel(self):
+        """Phase 3: Four-character quip display (Cipher, Echo, Ayatoki, Mitsu)"""
         panel = QGroupBox("Character Status")
         layout = QVBoxLayout(panel)
+        
+        # Top row: Cipher + Echo
+        top_row = QHBoxLayout()
         
         # Cipher-tan quips
         cipher_group = QFrame()
@@ -727,11 +806,11 @@ class CIPHERTANMainWindow(QMainWindow):
         
         self.cipher_quip_display = QTextEdit()
         self.cipher_quip_display.setReadOnly(True)
-        self.cipher_quip_display.setMaximumHeight(80)
+        self.cipher_quip_display.setMaximumHeight(70)
         self.cipher_quip_display.setPlaceholderText("Cipher-tan will sass you here...")
         cipher_layout.addWidget(self.cipher_quip_display, 1)
         
-        layout.addWidget(cipher_group)
+        top_row.addWidget(cipher_group)
         
         # Echo-tan quips
         echo_group = QFrame()
@@ -745,11 +824,15 @@ class CIPHERTANMainWindow(QMainWindow):
         
         self.echo_quip_display = QTextEdit()
         self.echo_quip_display.setReadOnly(True)
-        self.echo_quip_display.setMaximumHeight(80)
+        self.echo_quip_display.setMaximumHeight(70)
         self.echo_quip_display.setPlaceholderText("Echo-tan will whisper here...")
         echo_layout.addWidget(self.echo_quip_display, 1)
         
-        layout.addWidget(echo_group)
+        top_row.addWidget(echo_group)
+        layout.addLayout(top_row)
+        
+        # Bottom row: Ayatoki + Mitsu
+        bottom_row = QHBoxLayout()
         
         # Ayatoki quips
         ayatoki_group = QFrame()
@@ -763,16 +846,36 @@ class CIPHERTANMainWindow(QMainWindow):
         
         self.ayatoki_quip_display = QTextEdit()
         self.ayatoki_quip_display.setReadOnly(True)
-        self.ayatoki_quip_display.setMaximumHeight(80)
+        self.ayatoki_quip_display.setMaximumHeight(70)
         self.ayatoki_quip_display.setPlaceholderText("Ayatoki's lab notes appear here...")
         ayatoki_layout.addWidget(self.ayatoki_quip_display, 1)
         
-        layout.addWidget(ayatoki_group)
+        bottom_row.addWidget(ayatoki_group)
+        
+        # Mitsu quips (Phase 3)
+        mitsu_group = QFrame()
+        mitsu_group.setStyleSheet(f"border: 2px solid {CIPHER_COLORS['accent4']}; border-radius: 8px; padding: 8px; background-color: #1f0a1a;")
+        mitsu_layout = QHBoxLayout(mitsu_group)
+        
+        mitsu_avatar = QLabel()
+        mitsu_avatar.setPixmap(_cc_get_pixmap(48, "mitsu"))
+        mitsu_avatar.setFixedSize(48, 48)
+        mitsu_layout.addWidget(mitsu_avatar)
+        
+        self.mitsu_quip_display = QTextEdit()
+        self.mitsu_quip_display.setReadOnly(True)
+        self.mitsu_quip_display.setMaximumHeight(70)
+        self.mitsu_quip_display.setPlaceholderText("Mitsu-chan's build logs appear here...")
+        mitsu_layout.addWidget(self.mitsu_quip_display, 1)
+        
+        bottom_row.addWidget(mitsu_group)
+        layout.addLayout(bottom_row)
         
         # Add initial quips
-        self.add_quip("Entropy buffet's open—who's hungry for bits?", "cipher")
+        self.add_quip("Entropy buffet's open - who's hungry for bits?", "cipher")
         self.add_quip("Every signal is a heartbeat. Every error, a sigh.", "echo")
         self.add_quip("El Psy Kongroo! See? Chaos theory wins again.", "ayatoki")
+        self.add_quip("Remote forge online. Mitsu reporting for duty!", "mitsu")
         
         return panel
     
@@ -789,7 +892,7 @@ class CIPHERTANMainWindow(QMainWindow):
         
         layout.addWidget(self.log_display)
         
-        self.add_log("Entropic Chaos · Cobra Lab Phase 2 initialized")
+        self.add_log("Entropic Chaos - Cobra Lab Phase 3 initialized")
         if PQC_AVAILABLE:
             self.add_log("PQC bindings detected - Post-quantum key wrapping available")
         else:
@@ -798,11 +901,14 @@ class CIPHERTANMainWindow(QMainWindow):
         return panel
     
     def setup_worker(self):
-        """Setup Cipher worker thread"""
+        """Setup Cipher worker thread and Phase 3 HTTP ingest"""
         self.worker_thread = QThread()
         self.worker = CIPHERTANWorker()
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.start()
+        
+        # PHASE 3: Start the HTTP Ingest Server for Mitsu Uplink
+        start_ayatoki_ingest_server(self.worker, host="0.0.0.0", port=8000)
     
     def setup_echo_worker(self):
         """Phase 2: Setup Echo worker thread and link to Ayatoki"""
@@ -846,7 +952,7 @@ class CIPHERTANMainWindow(QMainWindow):
                 self.activateWindow()
     
     def connect_signals(self):
-        """Connect all signals including Phase 2"""
+        """Connect all signals including Phase 2 and Phase 3"""
         # Cipher connection buttons
         self.cipher_connect_btn.clicked.connect(self.connect_to_cipher)
         self.cipher_disconnect_btn.clicked.connect(self.disconnect_from_cipher)
@@ -885,6 +991,9 @@ class CIPHERTANMainWindow(QMainWindow):
             
             # Phase 2: Dual audit signals
             self.worker.request_echo_audit.connect(self.request_echo_audit)
+            
+            # Phase 3: Mitsu signals
+            self.worker.mitsu_entropy_received.connect(self.on_mitsu_entropy_received)
         
         # Phase 2: Echo worker signals
         if self.echo_worker:
@@ -894,7 +1003,7 @@ class CIPHERTANMainWindow(QMainWindow):
             self.echo_worker.error_occurred.connect(self.on_error)
             self.echo_worker.connection_status.connect(self.on_echo_connection_status_changed)
             self.echo_worker.esp_status_updated.connect(self.on_echo_esp_status_updated)
-            self.echo_worker.entropy_received.connect(self.on_echo_entropy_received)  # Phase 2: Track verified entropy
+            self.echo_worker.entropy_received.connect(self.on_echo_entropy_received)
         
         # Network manager
         self.network_manager.network_status_changed.connect(self.update_network_status)
@@ -1143,7 +1252,7 @@ class CIPHERTANMainWindow(QMainWindow):
             self.on_echo_connection_status_changed(False)
     
     def start_chaos(self):
-        """Start the chaos system with Phase 2 dual audit"""
+        """Start the chaos system with Phase 3 quad-source mixing"""
         if not self.worker:
             return
             
@@ -1171,10 +1280,10 @@ class CIPHERTANMainWindow(QMainWindow):
         # Update UI
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
-        self.status_bar.showMessage("Chaos Storm Active - Dual audit engaged!")
+        self.status_bar.showMessage("Chaos Storm Active - Quad-source mixing engaged!")
         
         # Ayatoki quip
-        self.add_quip("Phase 2 operational. Echo and Cipher, report status!", "ayatoki")
+        self.add_quip("Phase 3 operational. All nodes reporting nominal!", "ayatoki")
     
     def stop_chaos(self):
         """Stop the chaos system"""
@@ -1256,18 +1365,15 @@ class CIPHERTANMainWindow(QMainWindow):
         if status['headscale']:
             self.headscale_status.setText("Headscale: Connected")
             self.headscale_status.setStyleSheet(f"color: {CIPHER_COLORS['success']};")
-            self.uplink_status.setText("Uplink: Active")
+            self.uplink_status.setText("Tailscale: Active")
             self.uplink_status.setStyleSheet(f"color: {CIPHER_COLORS['success']};")
         else:
             self.headscale_status.setText("Headscale: Disconnected")
             self.headscale_status.setStyleSheet(f"color: {CIPHER_COLORS['error']};")
-            self.uplink_status.setText("Uplink: Standalone")
+            self.uplink_status.setText("Tailscale: Standalone")
             self.uplink_status.setStyleSheet(f"color: {CIPHER_COLORS['warning']};")
         
         self.mesh_peers_label.setText(f"Mesh Peers: {status['mesh_peers']}")
-        
-        if status['mesh_peers'] > 0:
-            self.add_quip("Packets scrambled, mesh tangled—chaos relay primed!", "cipher")
     
     def add_log(self, message):
         """Add log message"""
@@ -1279,7 +1385,7 @@ class CIPHERTANMainWindow(QMainWindow):
         self.log_display.setTextCursor(cursor)
     
     def add_quip(self, quip, character="cipher"):
-        """Phase 2: Add character-specific quip with proper styling"""
+        """Phase 3: Add character-specific quip with proper styling"""
         timestamp = datetime.now().strftime("[%H:%M:%S]")
         
         # Character-specific colors and names
@@ -1295,6 +1401,10 @@ class CIPHERTANMainWindow(QMainWindow):
             color = CIPHER_COLORS['accent']  # Red
             name = "Ayatoki"
             display = self.ayatoki_quip_display
+        elif character == "mitsu":
+            color = CIPHER_COLORS['accent4']  # Pink
+            name = "Mitsu-chan"
+            display = self.mitsu_quip_display
         else:
             color = CIPHER_COLORS['text']
             name = "System"
@@ -1314,7 +1424,7 @@ class CIPHERTANMainWindow(QMainWindow):
             self.worker.pqc_enabled = self.pqc_cb.isChecked()
             if self.worker.pqc_enabled:
                 self.add_log("PQC Key Wrapping ENABLED")
-                self.add_quip("Kyber crystals aligned—let the lattice sing.", "cipher")
+                self.add_quip("Kyber crystals aligned - let the lattice sing.", "cipher")
                 self.add_quip("Quantum protection layer activated. Proceeding with caution.", "ayatoki")
             else:
                 self.add_log("PQC Key Wrapping DISABLED")
@@ -1344,7 +1454,7 @@ class CIPHERTANMainWindow(QMainWindow):
             self.add_quip(random.choice(self.ayatoki_quips), "ayatoki")
     
     def on_pqc_key_generated(self, key_preview, metadata):
-        """Handle PQC-wrapped key generated - Phase 2: Kyber+Falcon Hybrid"""
+        """Handle PQC-wrapped key generated - Phase 3: Kyber+Falcon Hybrid"""
         key_type = metadata.get('type', 'unknown')
         wrapping = metadata.get('wrapping', '')
         signature_verified = metadata.get('signature_verified', False)
@@ -1353,26 +1463,26 @@ class CIPHERTANMainWindow(QMainWindow):
         # Reflect post-PQC wrap details in Ayatoki's audit panel
         if hasattr(self, 'ayatoki_last_wrap_label'):
             source_text = " + ".join(sources) if sources else "multi-source"
-            self.ayatoki_last_wrap_label.setText(f"Last Key: {source_text} → {wrapping}")
+            self.ayatoki_last_wrap_label.setText(f"Last Key: {source_text} -> {wrapping}")
         if hasattr(self, 'ayatoki_wrap_algorithm_label'):
             self.ayatoki_wrap_algorithm_label.setText(f"Protection: {key_type}")
 
         # Phase 2: Update Echo Post-Wrap Verification tab
         if hasattr(self, 'echo_audit_score_label'):
             if signature_verified:
-                self.echo_audit_score_label.setText("✓ Signature Valid")
+                self.echo_audit_score_label.setText("Signature Valid")
                 self.echo_audit_score_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {CIPHER_COLORS['success']};")
                 self.echo_health_status_label.setText("Post-Wrap: Falcon signature verified")
                 self.echo_verdict_label.setText("Provenance chain intact. Key authenticated.")
             else:
-                self.echo_audit_score_label.setText("✗ Signature Failed")
+                self.echo_audit_score_label.setText("Signature Failed")
                 self.echo_audit_score_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {CIPHER_COLORS['error']};")
                 self.echo_health_status_label.setText("Post-Wrap: Verification FAILED")
                 self.echo_verdict_label.setText("CRITICAL: Signature could not be verified!")
 
         # Update key type display with signature status
         if 'hybrid' in key_type.lower():
-            status_icon = "✓" if signature_verified else "✗"
+            status_icon = "[OK]" if signature_verified else "[FAIL]"
             self.key_type_label.setText(f"Key Type: PQC Hybrid (Kyber+Falcon) {status_icon}")
             self.key_type_label.setStyleSheet(f"color: {CIPHER_COLORS['pqc']}; font-weight: bold;")
         elif 'kyber' in key_type.lower():
@@ -1382,22 +1492,22 @@ class CIPHERTANMainWindow(QMainWindow):
             self.key_type_label.setText("Key Type: PQC-Signed (Falcon512)")
             self.key_type_label.setStyleSheet(f"color: {CIPHER_COLORS['pqc']}; font-weight: bold;")
         
-        self.add_log(f"✓ PQC Key Generated ({wrapping}): {key_preview[:20]}... | Sig: {'VALID' if signature_verified else 'FAIL'}")
+        self.add_log(f"PQC Key Generated ({wrapping}): {key_preview[:20]}... | Sig: {'VALID' if signature_verified else 'FAIL'}")
         
-        # Character reactions - Phase 2 style
+        # Character reactions - Phase 3 style
         if 'hybrid' in key_type.lower() and signature_verified:
             pqc_quips_ayatoki = [
                 "Kyber+Falcon hybrid deployed. Post-quantum fortress erected.",
                 "Signature verified. The theorem holds. Q.E.D.",
-                "Three-source mixing complete. PQC protection: maximum.",
+                "Four-source mixing complete. PQC protection: maximum.",
                 "Perfect! Another proof that math can weaponize randomness."
             ]
             self.add_quip(random.choice(pqc_quips_ayatoki), "ayatoki")
         else:
             pqc_quips_cipher = [
-                "Kyber crystals aligned—let the lattice sing.",
-                "Falcon dives, signature lands—classical crypto's a fossil.",
-                "Another key minted—smell that? That's post-quantum spice.",
+                "Kyber crystals aligned - let the lattice sing.",
+                "Falcon dives, signature lands - classical crypto's a fossil.",
+                "Another key minted - smell that? That's post-quantum spice.",
                 "Noise harvested, entropy bottled, PQC corked tight. Cheers!"
             ]
             self.add_quip(random.choice(pqc_quips_cipher), "cipher")
@@ -1447,7 +1557,7 @@ class CIPHERTANMainWindow(QMainWindow):
             self.cipher_connect_btn.setEnabled(False)
             self.cipher_disconnect_btn.setEnabled(True)
             self.status_bar.showMessage("Cipher-tan connected")
-            self.add_quip("^^^ RNG Queen reporting for duty! Let's chaos it up!", "cipher")
+            self.add_quip("RNG Queen reporting for duty! Let's chaos it up!", "cipher")
         else:
             self.cipher_connection_status.setText("Disconnected")
             self.cipher_connection_status.setStyleSheet(f"color: {CIPHER_COLORS['error']};")
@@ -1473,7 +1583,32 @@ class CIPHERTANMainWindow(QMainWindow):
             self.echo_connected = False
             self.status_bar.showMessage("Echo-tan disconnected")
     
-    @Slot(dict)
+    @Slot(int, dict)
+    def on_mitsu_entropy_received(self, byte_count, meta):
+        """Phase 3: Handle entropy received from Mitsu"""
+        self.mitsu_bytes_received += byte_count
+        self.mitsu_connected = True
+        
+        # Update UI
+        self.mitsu_connection_status.setText("ONLINE - Receiving entropy!")
+        self.mitsu_connection_status.setStyleSheet(f"color: {CIPHER_COLORS['success']}; font-weight: bold;")
+        
+        self.mitsu_bytes_label.setText(f"Bytes Received: {self.mitsu_bytes_received}")
+        
+        if meta:
+            seq = meta.get('seq', '--')
+            source = meta.get('source', '--')
+            health = meta.get('health', 'OK')
+            
+            self.mitsu_seq_label.setText(f"Last Sequence: {seq}")
+            self.mitsu_source_label.setText(f"Last Source: {source}")
+            self.mitsu_quality_label.setText(f"Health: {health}")
+            
+            if health == "OK":
+                self.mitsu_quality_label.setStyleSheet(f"color: {CIPHER_COLORS['success']};")
+            else:
+                self.mitsu_quality_label.setStyleSheet(f"color: {CIPHER_COLORS['warning']};")
+    
     @Slot(dict)
     def on_cipher_esp_status_updated(self, status):
         """Handle Cipher ESP32 status updates"""
@@ -1489,10 +1624,10 @@ class CIPHERTANMainWindow(QMainWindow):
             self.cipher_usb_entropy_label.setText(f"USB Jitter: {usb_bytes} bytes")
             
             if wifi_bytes > 0 and wifi_bytes % 100 == 0:
-                self.add_quip("Packets scrambled, mesh tangled—chaos relay primed!", "cipher")
+                self.add_quip("Packets scrambled, mesh tangled - chaos relay primed!", "cipher")
             
             if usb_bytes > 0 and usb_bytes % 50 == 0:
-                self.add_quip("USB jitter swallowed whole—entropy's dessert course! (•̀ᴗ•́)و ̑̑", "cipher")
+                self.add_quip("USB jitter swallowed whole - entropy's dessert course!", "cipher")
                 
         except Exception as e:
             self.add_log(f"Error parsing Cipher ESP32 status: {e}")
@@ -1586,15 +1721,15 @@ class CIPHERTANMainWindow(QMainWindow):
             self.echo_verdict_label.setText(f"Verdict: {reason}")
             
             if health == "OK":
-                self.echo_audit_score_label.setText("✓ Passed")
+                self.echo_audit_score_label.setText("Passed")
                 self.echo_audit_score_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {CIPHER_COLORS['success']};")
                 self.add_quip("Key observed and recorded. My audit stands witness.", "echo")
             elif health == "WARN":
-                self.echo_audit_score_label.setText("⚠ Warning")
+                self.echo_audit_score_label.setText("Warning")
                 self.echo_audit_score_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {CIPHER_COLORS['warning']};")
                 self.add_quip("Quality below threshold. Recommend additional collection.", "echo")
             else:
-                self.echo_audit_score_label.setText("✗ Failed")
+                self.echo_audit_score_label.setText("Failed")
                 self.echo_audit_score_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {CIPHER_COLORS['error']};")
                 self.add_quip("Deviation detected. Marking sample as suspect.", "echo")
             
@@ -1649,7 +1784,7 @@ class CIPHERTANMainWindow(QMainWindow):
         if hasattr(self, 'tray_icon') and self.tray_icon.isVisible():
             self.hide()
             self.tray_icon.showMessage(
-                "Entropic Chaos · Cobra Lab", 
+                "Entropic Chaos - Cobra Lab", 
                 "Still running in background. Double-click tray icon to show.", 
                 QSystemTrayIcon.Information, 
                 3000
